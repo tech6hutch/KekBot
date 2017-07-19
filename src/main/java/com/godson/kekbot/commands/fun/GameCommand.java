@@ -3,6 +3,7 @@ package com.godson.kekbot.commands.fun;
 import com.darichey.discord.api.Command;
 import com.darichey.discord.api.CommandCategory;
 import com.godson.kekbot.Games.Game;
+import com.godson.kekbot.Games.Solitaire;
 import com.godson.kekbot.Games.TicTacToe;
 import com.godson.kekbot.KekBot;
 import com.godson.kekbot.Settings.Config;
@@ -33,6 +34,12 @@ public class GameCommand {
                                             case "ttt":
                                             case "tic-tac-toe":
                                                 KekBot.gamesManager.addGame(channel, new TicTacToe(channel), context.getAuthor());
+                                                break;
+                                            case "solitaire":
+                                            case "patience":
+                                            case "klondike":
+                                                KekBot.gamesManager.addGame(channel, new Solitaire(channel), context.getAuthor());
+                                                break;
                                         }
                                     }
                                 } else {
