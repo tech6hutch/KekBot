@@ -7,6 +7,7 @@ import com.godson.kekbot.Games.GamesManager;
 import com.godson.kekbot.Music.MusicPlayer;
 import com.godson.kekbot.Objects.WaifuManager;
 import com.godson.kekbot.Profile.BackgroundManager;
+import com.godson.kekbot.Profile.Rewards.Lottery.Lottery;
 import com.godson.kekbot.Shop.BackgroundShop;
 import com.godson.kekbot.Shop.TokenShop;
 import com.godson.kekbot.Responses.Action;
@@ -26,28 +27,38 @@ import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.imageio.ImageIO;
 import javax.security.auth.login.LoginException;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class KekBot {
-    public static int shards = GSONUtils.getConfig().getShards();
+    //Seting configs, and resources.
+    private static int shards = GSONUtils.getConfig().getShards();
     public static JDA[] jdas = new JDA[shards];
     public static final String version;
-    public static PollManager manager = new PollManager();
     public static long startTime = System.currentTimeMillis();
-    public static EventWaiter waiter = new EventWaiter();
+    public static BufferedImage genericAvatar;
     private static Map<Action, List<String>> responses = new HashMap<>();
+
+
+    //ALL THE MANAGERS.
+    public static PollManager manager = new PollManager();
+    public static EventWaiter waiter = new EventWaiter();
     public static MusicPlayer player = new MusicPlayer();
     public static GamesManager gamesManager = new GamesManager();
     public static TokenShop tokenShop = new TokenShop();
     public static BackgroundManager backgroundManager = new BackgroundManager();
     public static BackgroundShop backgroundShop = new BackgroundShop();
     public static WaifuManager waifuManager = new WaifuManager();
+    public static Lottery lottery = new Lottery();
 
     static {
+        //TODO: Remove this later in favor of hardcoding the version, instead of relying on a .properties file.
         InputStream stream = KekBot.class.getClassLoader().getResourceAsStream("kekbot.properties");
         java.util.Properties properties = new java.util.Properties();
         try {
@@ -57,6 +68,12 @@ public class KekBot {
             e.printStackTrace();
         }
         version = properties.getProperty("kekbot.version");
+
+        try {
+            genericAvatar = ImageIO.read(new File("resources/discordGeneric.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) throws LoginException, InterruptedException, RateLimitedException {
@@ -91,7 +108,7 @@ public class KekBot {
                         Skip.skip, Playlist.playlist, Song.song, Stop.stop, Volume.volume, Host.host, Music.music, Pause.pause, VoteSkip.voteskip, Repeat.repeat, Invite.invite,
                         Erase.erase, Johnny.johnny, LongLive.longlive, BlockUser.blockUser, DELET.delet, AddPatron.addPatron, RemovePatron.removePatron,
                         Poosy.poosy, EightBall.eightBall, Pick.pick, GameCommand.game, ProfileCommand.profile, FullWidth.fullwidth, ShopCommand.shop, MyPlaylist.myPlaylist,
-                        Rip.rip, RateWaifu.rateWaifu, Gabe.gabe, Changelog.changelog);
+                        Rip.rip, RateWaifu.rateWaifu, Gabe.gabe, Changelog.changelog, LotteryCommand.lottery);
             }
 
             for (Action action : Action.values()) {
@@ -127,46 +144,16 @@ public class KekBot {
         else responses.put(action, new ArrayList<>()).add(response);
     }
 
+    //TODO: This may wind up being depreciated in a later revision of The Fun Update, in favor of a "insertPrefix", which merely returns the prefix as a string, instead of going through an entire string just to replace one or two instances of "{p}".
     public static String replacePrefix(Guild guild, String contents) {
         return contents.replace("{p}",
                 (CommandRegistry.getForClient(guild.getJDA()).getPrefixForGuild(guild) != null
                         ? CommandRegistry.getForClient(guild.getJDA()).getPrefixForGuild(guild) : "$"));
     }
 
-    public static String convertMillisToHMmSs(long millis) {
-        long hours = TimeUnit.MILLISECONDS.toHours(millis);
-        long minutes = TimeUnit.MILLISECONDS.toMinutes(millis) -
-                TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis));
-        long seconds = TimeUnit.MILLISECONDS.toSeconds(millis) -
-                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis));
-        return (hours > 0 ? hours + ":" : "") +
-                (minutes > 0 ? (minutes > 9 ? minutes + ":" : (hours > 0 ? "0" + minutes + ":" : minutes + ":" )) : (hours > 0 ? "00:" : "0:")) +
-                (seconds > 0 ? (seconds > 9 ? seconds : "0" + seconds) : "00");
-    }
-
-    public static String convertMillisToTime(long millis) {
-        long days = TimeUnit.MILLISECONDS.toDays(millis);
-        long hours = TimeUnit.MILLISECONDS.toHours(millis) -
-                TimeUnit.DAYS.toHours(TimeUnit.MILLISECONDS.toDays(millis));
-        long minutes = TimeUnit.MILLISECONDS.toMinutes(millis) -
-                TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis));
-        long seconds = TimeUnit.MILLISECONDS.toSeconds(millis) -
-                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis));
-        return (days != 0 ? days + (days > 1 ? " Days, " : " Day, ") : "") +
-                (hours != 0 ? hours + (hours > 1 ? " Hours, " : " Hour, ") : "") + minutes +
-                (minutes != 1 ? " Minutes and " : " Minute and ") + seconds + (seconds != 1 ? " Seconds." : " Second.");
-    }
-
-    public static String songTimestamp(long current, long length) {
-        return convertMillisToHMmSs(current) + "/" + convertMillisToHMmSs(length);
-    }
-
-    public static String removeWhitespaceEdges(String string) {
-        if (string.matches(".*\\w.*")) {
-            if (string.startsWith(" ")) string = string.replaceFirst("([ ]+)", "");
-            if (string.endsWith(" ")) string = string.replaceAll("([ ]+$)", "");
-        } else string = "";
-        return string;
+    public static String insertPrefix(Guild guild) {
+        return (CommandRegistry.getForClient(guild.getJDA()).getPrefixForGuild(guild) != null
+                ? CommandRegistry.getForClient(guild.getJDA()).getPrefixForGuild(guild) : "$");
     }
 
 }

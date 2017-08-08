@@ -2,6 +2,7 @@ package com.godson.kekbot.Games;
 
 import com.godson.kekbot.KekBot;
 import com.godson.kekbot.Questionaire.Questionnaire;
+import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
@@ -105,7 +106,8 @@ public class Solitaire extends Game {
 //                }, redoInput);
 //    }
 
-    public void input(String contents, GuildMessageReceivedEvent event) {
+    @Override
+    public void acceptInputFromMessage(Message message) {
         // do stuff
     }
 

@@ -29,18 +29,20 @@ public class GameCommand {
                             if (!KekBot.gamesManager.doesUserHaveGame(channel, context.getAuthor())) {
                                 if (KekBot.gamesManager.isChannelFree(channel)) {
                                     if (context.getArgs().length >= 2) {
-                                        switch (context.getArgs()[1].toLowerCase()) {
+                                        String gameName = context.getArgs()[1].toLowerCase()
+                                                .replace(" ", "")
+                                                .replace("-", "");
+                                        switch (gameName) {
                                             case "tictactoe":
                                             case "ttt":
-                                            case "tic-tac-toe":
                                                 KekBot.gamesManager.addGame(channel, new TicTacToe(channel), context.getAuthor());
                                                 break;
                                             case "solitaire":
-                                            case "patience":
-                                            case "klondike":
+                                            case "patience": // as it's called outside of the US
+                                            case "klondike": // the term for this type of solitaire/patience
                                                 KekBot.gamesManager.addGame(channel, new Solitaire(channel), context.getAuthor());
                                                 break;
-                                            case "7-grand-dad":
+                                            case "7granddad":
                                                 channel.sendMessage("Kek!").queue();
                                         }
                                     }
