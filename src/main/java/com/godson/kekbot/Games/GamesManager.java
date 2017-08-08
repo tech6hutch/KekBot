@@ -1,6 +1,8 @@
 package com.godson.kekbot.Games;
 
 import com.godson.kekbot.KekBot;
+import com.godson.kekbot.Questionaire.Questionnaire;
+import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
@@ -57,6 +59,7 @@ public class GamesManager extends ListenerAdapter {
             if (game.players.contains(event.getAuthor())) {
                 if (game.isReady()) {
                     String contents = event.getMessage().getRawContent();
+                    MessageChannel channel = event.getMessage().getChannel();
                     switch (game.getGameName()) {
                         case "TicTacToe":
                             TicTacToe ticTacToe = (TicTacToe) game;
@@ -66,6 +69,10 @@ public class GamesManager extends ListenerAdapter {
                             } catch (NumberFormatException e) {
                                 //do nothing.
                             }
+                            break;
+                        case "Solitaire":
+                            Solitaire solitaire = (Solitaire) game;
+                            solitaire.input(contents, event);
                     }
                 }
             }

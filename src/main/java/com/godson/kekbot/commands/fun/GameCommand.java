@@ -40,6 +40,8 @@ public class GameCommand {
                                             case "klondike":
                                                 KekBot.gamesManager.addGame(channel, new Solitaire(channel), context.getAuthor());
                                                 break;
+                                            case "7-grand-dad":
+                                                channel.sendMessage("Kek!").queue();
                                         }
                                     }
                                 } else {

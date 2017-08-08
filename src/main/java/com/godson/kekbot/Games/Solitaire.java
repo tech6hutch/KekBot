@@ -1,16 +1,20 @@
 package com.godson.kekbot.Games;
 
 import com.godson.kekbot.KekBot;
+import com.godson.kekbot.Questionaire.Questionnaire;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Consumer;
 
 public class Solitaire extends Game {
     private Random random = new Random();
+    private boolean inQuestionnaire = false;
 
-    private CardPile deck = new CardPile(52);
+    private CardPile deck;
     private CardPile discardPile = new CardPile();
     // The four piles where you place aces, then twos, etc., to win the game.
     private List<CardPile> foundation = Arrays.asList(
@@ -31,12 +35,15 @@ public class Solitaire extends Game {
     @Override
     public void startGame() {
         // Make and shuffle deck
+        List<Card> newDeck = new ArrayList<>(52);
         for (final Card.Suit suit : Card.Suit.values()) {
             for (final Card.Face face : Card.Face.values()) {
-                this.deck.add(new Solitaire.Card(suit, face));
+                newDeck.add(new Solitaire.Card(suit, face));
             }
         }
-        Collections.shuffle(this.deck);
+        Collections.shuffle(newDeck);
+        this.deck = new CardPile(newDeck);
+
         // Fill the seven piles
         assert this.tableau.size() == 7;
         for (byte pileNum = 1; pileNum < 7; pileNum++) {
@@ -51,6 +58,184 @@ public class Solitaire extends Game {
         drawBoard();
         channel.sendMessage("**Pick a slot to move that card.**").queue();
     }
+
+//    private void startQuestionnaireLoop() {
+//        new Questionnaire(channel.getGuild(), channel, this.players.get(0))
+//                .withoutErrorMessage()
+//                .addChoiceQuestion("Make your move; `move` a card, `draw` from the deck, or `exit` the game.",
+//                        true, "move", "draw", "exit")
+//                .execute(results -> {
+//                    final String answer = results.getAnswer(0).toString();
+//                    final String[] args = answer.split(" ");
+//                    if (answer.startsWith("move")) {
+//                        final Questionnaire moveFromWhereQ = new Questionnaire(results)
+//                                .addChoiceQuestion("Move from where? `d`iscard pile, `t`ableau, or `f`oundation. (Or `cancel`.)",
+//                                        true, "d", "t", "f");
+//                        if (args.length > 1) {
+//                            // Shortcut
+//                            moveFromWhereQ
+//                                    .executeNow(String.join(" ", Arrays.copyOfRange(args, 1, args.length)),
+//                                            moveToWhereCB, unused -> {
+//                                                results.reExecute();
+//                                            });
+//                        } else {
+//                            // Ask normally
+//                            moveFromWhereQ
+//                                    .withoutErrorMessage()
+//                                    .execute(moveToWhereCB, redoInput);
+//                        }
+//                    } else if (answer.startsWith("draw")) {
+//                        // todo
+//                    } else if (answer.startsWith("exit")) {
+//                        new Questionnaire(results)
+//                                .addYesNoQuestion("Really exit? This will count as a loss.")
+//                                .execute(results1 -> {
+//                                    final String answer1 = results1.getAnswer(0).toString();
+//                                    final Questionnaire questionnaire = results1.getQuestionnaire();
+//
+//                                    if (questionnaire.yesChoices.contains(answer1)) {
+//                                        // todo exit game
+//                                    } else if (questionnaire.noChoices.contains(answer1)) {
+//                                        redoInput.accept(null);
+//                                    }
+//                                }, redoInput);
+//                        channel.sendMessage("Okay, you've forfeited this game :ok_hand:").queue();
+//                        // todo
+//                    }
+//                }, redoInput);
+//    }
+
+    public void input(String contents, GuildMessageReceivedEvent event) {
+        // do stuff
+    }
+
+//    public void input(String contents, GuildMessageReceivedEvent event) {
+//        if (this.inQuestionnaire) return;
+//        this.inQuestionnaire = true;
+//        Consumer<Object> redoInput = unused -> this.input(contents, event);
+//        Consumer<Questionnaire.Results> moveToWhereCB = results -> this.moveToWhereCB(results, redoInput);
+//        new Questionnaire(event)
+//                .addChoiceQuestion("Make your move; `move` a card, `draw` from the deck, or `exit` the game.",
+//                        true, "move", "draw", "exit")
+//                .withoutErrorMessage()
+//                .execute(results -> {
+//                    final String answer = results.getAnswer(0).toString();
+//                    final String[] args = answer.split(" ");
+//                    if (answer.startsWith("move")) {
+//                        final Questionnaire moveFromWhereQ = new Questionnaire(results)
+//                                .addChoiceQuestion("Move from where? `d`iscard pile, `t`ableau, or `f`oundation. (Or `cancel`.)",
+//                                        true, "d", "t", "f");
+//                        if (args.length > 1) {
+//                            // Shortcut
+//                            moveFromWhereQ
+//                                    .executeNow(String.join(" ", Arrays.copyOfRange(args, 1, args.length)),
+//                                            moveToWhereCB, unused -> results.reExecute());
+//                        } else {
+//                            // Ask normally
+//                            moveFromWhereQ
+//                                    .withoutErrorMessage()
+//                                    .execute(moveToWhereCB, redoInput);
+//                        }
+//                    } else if (answer.startsWith("draw")) {
+//                        // todo
+//                    } else if (answer.startsWith("exit")) {
+//                        new Questionnaire(results)
+//                                .addYesNoQuestion("Really exit? This will count as a loss.")
+//                                .execute(results1 -> {
+//                                    final String answer1 = results1.getAnswer(0).toString();
+//                                    final Questionnaire questionnaire = results1.getQuestionnaire();
+//
+//                                    if (questionnaire.yesChoices.contains(answer1)) {
+//                                        // todo exit game
+//                                    } else if (questionnaire.noChoices.contains(answer1)) {
+//                                        redoInput.accept(null);
+//                                    }
+//                                }, redoInput);
+//                        channel.sendMessage("Okay, you've forfeited this game :ok_hand:").queue();
+//                        // todo
+//                    }
+//                }, redoInput);
+//        this.inQuestionnaire = false;
+//    }
+//
+//    /**
+//     * Questionnaire#execute & Questionnaire#executeNow callback.
+//     */
+//    private void moveToWhereCB(Questionnaire.Results results, Consumer<Object> redoInput) {
+//        Consumer<Questionnaire.Results> moveToWhichSlotCB = results1 -> this.moveToWhichSlotCB(results1, redoInput);
+//        final String answer = results.getAnswer(0).toString();
+//        final String[] args = answer.split(" ");
+//        if (answer.startsWith("d")) {
+//            try {
+//                final Solitaire.Card card = this.takeFromDiscard();
+//                // Prepare next questionnaire
+//                final Questionnaire moveToWhereQ = new Questionnaire(results)
+//                        .addChoiceQuestion("Move the " + card.getShorthand() + " where? `t`ableau or `f`oundation? (Or `cancel`.)",
+//                                true, "t", "f");
+//                if (args.length > 1) {
+//                    // Shortcut
+//                    moveToWhereQ
+//                            .executeNow(String.join(" ", Arrays.copyOfRange(args, 1, args.length)),
+//                                    moveToWhichSlotCB, unused -> results.reExecute());
+//                } else {
+//                    // Ask normally
+//                    moveToWhereQ
+//                            .withoutErrorMessage()
+//                            .execute(moveToWhichSlotCB, redoInput);
+//                }
+//            } catch (NoSuchElementException e) {
+//                channel.sendMessage("The discard pile is empty.").queue();
+//                redoInput.accept(null);
+//            } catch (Exception e) {
+//                channel.sendMessage("Can't move card there.").queue();
+//                redoInput.accept(null);
+//            }
+//        } else if (answer.startsWith("t")) {
+//            moveFromWhichTableauSlot(results, redoInput);
+//        } else if (answer.startsWith("f")) {
+//            // todo moveFromWhichFoundationSlot
+//        }
+//    }
+//
+//    private void moveFromWhichTableauSlot(Questionnaire.Results results, Consumer<Object> redoInput) {
+//        // todo
+////        final Questionnaire moveFromWhereQ = new Questionnaire(results)
+////                .addChoiceQuestion("Move from where? `d`iscard pile, `t`ableau, or `f`oundation. (Or `cancel`.)",
+////                        true, "d", "t", "f");
+//        final String[] args = results.getAnswer(0).toString().split(" ");
+//        if (args.length > 1) {
+//            // Shortcut
+//            // todo
+//            moveFromWhereQ
+//                    .executeNow(String.join(" ", Arrays.copyOfRange(args, 1, args.length)),
+//                            moveToWhere, unused -> {
+//                                results.reExecute();
+//                            });
+//        } else {
+//            // Ask normally
+//            // todo
+//            moveFromWhereQ
+//                    .withoutErrorMessage()
+//                    .execute(moveToWhere, redoInput);
+//        }
+//    }
+//
+//    /**
+//     * Questionnaire#execute & Questionnaire#executeNow callback.
+//     */
+//    private void moveToWhichSlotCB(Questionnaire.Results results, Consumer<Object> redoInput) {
+//        final String answer = results.getAnswer(0).toString();
+//        final String[] args = answer.split(" ");
+//        if (answer.startsWith("t")) {
+//            // todo
+//        } else if (answer.startsWith("f")) {
+//            // todo
+//        }
+//    }
+//
+//    private void moveToWhereInTableau(Questionnaire.Results results, Consumer<Object> redoInput) {
+//
+//    }
 
     private void drawBoard() {
         channel.sendTyping().queue();
@@ -89,6 +274,10 @@ public class Solitaire extends Game {
         }
         board.append("```");
         channel.sendMessage(board.toString()).queue();
+    }
+
+    public Card takeFromDiscard() throws NoSuchElementException {
+        return this.discardPile.pop();
     }
 
     public void fillSlot(int slot, User player) {
@@ -267,7 +456,7 @@ public class Solitaire extends Game {
         return draw;
     }
 
-    private static class Card {
+    public static class Card {
         Suit suit;
         Face face;
 
@@ -382,23 +571,10 @@ public class Solitaire extends Game {
         }
     }
 
-    private static class CardPile extends ArrayList<Card> {
+    public static class CardPile extends ArrayDeque<Card> {
         CardPile() {}
-
-        CardPile(int i) {
-            super(i);
-        }
-
-        Card getLast() {
-            return this.get(this.size() - 1);
-        }
-
-        Card pop() {
-            final int lastIndex = this.size() - 1;
-            final Card lastCard = this.get(lastIndex);
-            this.remove(lastIndex);
-            return lastCard;
-        }
+        CardPile(int i) { super(i); }
+        CardPile(Collection<? extends Card> collection) { super(collection); }
     }
 
     /**
@@ -454,8 +630,7 @@ public class Solitaire extends Game {
         }
 
         public boolean addAll(CardPile cards) {
-            final Card highestCard = cards.get(0);
-            return this.validCardToAdd(highestCard) && super.addAll(cards);
+            return this.validCardToAdd(cards.getFirst()) && super.addAll(cards);
         }
     }
 }
